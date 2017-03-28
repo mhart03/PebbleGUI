@@ -22,7 +22,15 @@ static GBitmap *unlock;
 static GBitmap *connected;
 static GBitmap *disconnected;
 static GBitmap *testing;
+AppTimer *timer;
+const int delta = 2000;
 
+void timer_callback(void *data) {
+  s_first_menu_items[0].subtitle = "Press to send";
+  s_first_menu_items[1].subtitle = "Press to send";
+  // Redraw this as soon as possible
+  layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
+}
 
 //CONNECTIVITY CALLBACK
 //   Handler for when the "Status" option is selected
@@ -48,9 +56,6 @@ static void connectivity_callback(int index, void *ctx) {
 //LOCK SELECTION CALLBACK
 //   Handler for when the "Lock Door" or "Unlock Door" options
 //   are selected.
-//
-//   NEEDS TO BE REFINED TO ACTUALLY SEND COMMANDS AND 
-//   ACT ACCORDINGLY
 static void lock_selection_callback(int index, void *ctx) {
 
   SimpleMenuItem *menu_item = &s_first_menu_items[index];
@@ -59,6 +64,7 @@ static void lock_selection_callback(int index, void *ctx) {
   if (index == 0) 
   {
     menu_item->subtitle = "Command sent!";
+    timer = app_timer_register(delta, (AppTimerCallback) timer_callback, NULL);
     // Begin the write request, getting the buffer and its length
     smartstrap_attribute_begin_write(attribute, &buffer, &buff_size);
     // Store the data to be written to this attribute
@@ -70,6 +76,7 @@ static void lock_selection_callback(int index, void *ctx) {
   else 
   {
     menu_item->subtitle = "Command sent!";
+    timer = app_timer_register(delta, (AppTimerCallback) timer_callback, NULL);
     // Begin the write request, getting the buffer and its length
     smartstrap_attribute_begin_write(attribute, &buffer, &buff_size);
     // Store the data to be written to this attribute
@@ -145,6 +152,10 @@ static void strap_availability_handler(SmartstrapServiceId service_id, bool is_a
 
   // Remember if the raw service is available
   s_service_available = (is_available && service_id == SMARTSTRAP_RAW_DATA_SERVICE_ID);
+  //connectivity_callback;
+  //added this needs debugged still
+  //layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
+  
 }
 
 static void strap_notify_handler(SmartstrapAttribute *attribute) {
@@ -190,6 +201,8 @@ static void init() {
 
 static void deinit() {
   window_destroy(s_main_window);
+  //Cancel timer
+  app_timer_cancel(timer);
 }
 
 int main(void) {
