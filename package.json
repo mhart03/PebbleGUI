@@ -2,9 +2,9 @@
     "author": "Pebble Technology",
     "dependencies": {},
     "keywords": [],
-    "name": "simple-menu",
+    "name": "smart-lock",
     "pebble": {
-        "displayName": "Simple Menu",
+        "displayName": "Smart Lock",
         "enableMultiJS": false,
         "messageKeys": [],
         "projectType": "native",

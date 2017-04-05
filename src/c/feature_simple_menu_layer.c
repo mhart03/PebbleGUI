@@ -5,9 +5,8 @@
 #define NUM_SECOND_MENU_ITEMS 1
 
 static SmartstrapAttribute *attribute;
-//static SmartstrapAttribute *s_raw_attribute;
-//static SmartstrapAttribute *s_attr_attribute;
 static bool s_service_available;
+//static bool lastServiceAvailable = 0;    //bool to remember what the last state of the connection status was so we aren;t updating the screen for no reason
 // Pointer to the attribute buffer
 size_t buff_size;
 uint8_t *buffer;
@@ -22,9 +21,10 @@ static GBitmap *unlock;
 static GBitmap *connected;
 static GBitmap *disconnected;
 static GBitmap *testing;
-AppTimer *timer;
-const int delta = 2000;
+AppTimer *timer;          // timer to reset the command sent message
+const int delta = 2000;  //how long we will deisplay the command sent message
 
+//this happens after a set delta to reset the command sent back to it's origonal state
 void timer_callback(void *data) {
   s_first_menu_items[0].subtitle = "Press to send";
   s_first_menu_items[1].subtitle = "Press to send";
@@ -32,26 +32,6 @@ void timer_callback(void *data) {
   layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
 }
 
-//CONNECTIVITY CALLBACK
-//   Handler for when the "Status" option is selected
-//
-//   NEEDS TO BE REFINED TO DETECT ACTUAL CONNECTION
-static void connectivity_callback(int index, void *ctx) {
-  //s_service_available = !s_service_available;
-  
-  if (s_service_available) 
-  {
-    s_second_menu_items[index].subtitle = "Connected!";
-    s_second_menu_items[index].icon = connected;
-  }
-  else 
-  {
-    s_second_menu_items[index].subtitle = "Disconnected!";
-    s_second_menu_items[index].icon = disconnected;
-  }
-  layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
-
-}
 
 //LOCK SELECTION CALLBACK
 //   Handler for when the "Lock Door" or "Unlock Door" options
@@ -129,7 +109,6 @@ static void main_window_load(Window *window) {
   s_second_menu_items[num_a_items++] = (SimpleMenuItem) {
     .title = "Status",
     .subtitle = "Checking...",
-    .callback = connectivity_callback,
     .icon = testing,
   };
 
@@ -152,9 +131,19 @@ static void strap_availability_handler(SmartstrapServiceId service_id, bool is_a
 
   // Remember if the raw service is available
   s_service_available = (is_available && service_id == SMARTSTRAP_RAW_DATA_SERVICE_ID);
-  //connectivity_callback;
-  //added this needs debugged still
-  //layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
+  
+  if (is_available) 
+  {
+    s_second_menu_items[0].subtitle = "Connected!";
+    s_second_menu_items[0].icon = connected;
+  }
+  else 
+  {
+    s_second_menu_items[0].subtitle = "Disconnected!";
+    s_second_menu_items[0].icon = disconnected;
+  }
+  layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
+
   
 }
 
@@ -183,8 +172,6 @@ static void strap_init() {
     .did_write = strap_write_handler,  
   }); 
   
-  //s_raw_attribute = smartstrap_attribute_create(0, 0, 2000);
-  //s_attr_attribute = smartstrap_attribute_create(0x1001, 0x1001, 20);
   attribute = smartstrap_attribute_create(0x1001, 0x1001, 20);
 }
 
@@ -197,6 +184,7 @@ static void init() {
     .unload = main_window_unload,
   });
   window_stack_push(s_main_window, true);
+  
 }
 
 static void deinit() {
