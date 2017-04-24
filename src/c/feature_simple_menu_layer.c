@@ -1,3 +1,14 @@
+/*  
+ *  Pebble SmartLock
+ *  CET 492 - Senior Project
+ *  Dr. Chen
+ *  Date: 4-28-17
+ *  Authors: Matthew Hart, Ryan Meyer, Josh Lanxner, Aaron Morgan
+ *  Description: This code is the interface for the Pebble SmartLock.  From here the user can choose to send different commands.
+ *  The commands are sent over to an Arduino teensy over I2C and then sent out over RF from there.  This GUI features a status menu item as 
+ *  well that signifies whether a smartstrap is connected or not.
+ */
+
 #include "pebble.h"
 
 #define NUM_MENU_SECTIONS 2
